@@ -10,11 +10,11 @@ api = Blueprint('api')
 from .user_source import UserRoleSource, UserListSource, UserPasswordSource,UserEmailSource
 from .role_source import RoleListSource
 
-UserRoleSource.decorators.append(cross_origin(api))
-UserListSource.decorators.append(cross_origin(api))
-UserPasswordSource.decorators.append(cross_origin(api))
-UserEmailSource.decorators.append(cross_origin(api))
-RoleListSource.decorators.append(cross_origin(api))
+#UserRoleSource.decorators.append(cross_origin(api))
+#UserListSource.decorators.append(cross_origin(api))
+#UserPasswordSource.decorators.append(cross_origin(api))
+#UserEmailSource.decorators.append(cross_origin(api))
+#RoleListSource.decorators.append(cross_origin(api))
 
 api.add_route(UserRoleSource.as_view(), '/user_role/<_id>')
 api.add_route(UserPasswordSource.as_view(), '/user_password/<_id>')

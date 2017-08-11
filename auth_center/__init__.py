@@ -8,10 +8,9 @@ from itsdangerous import URLSafeTimedSerializer
 from auth_center.model import db, User, Role
 from auth_center.auth import auth
 from auth_center.api import api
-from sanic.exceptions import NotFound,Unauthorized
 
 app = Sanic("auth-center")
-CORS(app)
+CORS(app,automatic_options=True)
 AioOrm.SetConfig(app, defaultdb="mysql://root:rstrst@localhost:3306/test_auth")
 orm = AioOrm(app)
 orm.init_proxys(defaultdb=db)
@@ -37,10 +36,10 @@ async def creat_relationship(app, loop):
             await user.roles.add(role)
 
 
-@app.middleware('request')
-async def cros_request(request):
-    if request.method == "OPTIONS":
-        return json({"message":"ok"})
+# @app.middleware('request')
+# async def cros_request(request):
+#     if request.method == "OPTIONS":
+#         return json({"message":"ok"})
 
 
 
