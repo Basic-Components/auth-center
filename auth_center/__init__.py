@@ -1,7 +1,6 @@
 import uuid
 from sanic import Sanic
 from sanic import response
-from sanic_cors import CORS, cross_origin
 from sanic.response import json
 from sanic_aioorm import AioOrm
 from itsdangerous import URLSafeTimedSerializer
@@ -10,7 +9,7 @@ from auth_center.auth import auth
 from auth_center.api import api
 
 app = Sanic("auth-center")
-CORS(app,automatic_options=True)
+
 AioOrm.SetConfig(app, defaultdb="mysql://root:rstrst@localhost:3306/test_auth")
 orm = AioOrm(app)
 orm.init_proxys(defaultdb=db)
