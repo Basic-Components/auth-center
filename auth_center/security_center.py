@@ -139,3 +139,31 @@ async def auth_password_lost(request):
                         raise SourceNotFound("send email error")
         else:
             raise SourceNotFound("user and token not match")
+
+
+async def post(self, request):
+    """为User表添加新的成员,使用inser_many,传入的必须为一个名为users的列表,每个元素包含username和password和main_email
+    """
+    if (request.app.name not in request.args['_roles']):
+        return json({"message":"you do not have permission to see other's infomation"},401)
+
+    else:
+        iq = User.insert_many([{"_id": uuid.uuid4(),
+                                "username": i["username"],
+                                'password':i['password'],
+                                "main_email":i['main_email']
+                                } for i in request.json["users"]])
+        try:
+            result = await iq.execute()
+        except Exception as e:
+            return json({"message":e.message},500)
+
+        else:
+            if result:
+                return json({
+                    "result": True
+                })
+            else:
+                return json({
+                    "result": False
+                })

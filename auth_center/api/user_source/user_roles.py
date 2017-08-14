@@ -2,22 +2,22 @@ from sanic.views import HTTPMethodView
 from sanic.response import json
 from sanic.exceptions import abort
 from auth_center.model import User, Role
-from auth_center.decorator.auth_check import authorized
+from auth_center.decorator import authorized, role_check
 
 class UserRoleSource(HTTPMethodView):
     """操作单个用户中的权限
     """
-    decorators = [authorized()]
+    decorators = [role_check(),authorized()]
 
     async def get(self, request, _id):
         """获取用户当前的权限信息"""
         try:
             user = await User.get(User._id == _id)
         except:
-            return json({"message":"can not find the user"},401)
+            return json({"message":"找不到对应用户"},401)
 
-        if request.args['_username'] != user.username and (request.app.name not in request.args['_roles']):
-            return json({"message":"you do not have permission to see other's infomation"},401)
+        if request.args['auth_id'] != user._id :
+            return json({"message":"无权限查看"},401)
         else:
             return json({
                 "username": user.username,
@@ -27,56 +27,50 @@ class UserRoleSource(HTTPMethodView):
     async def post(self, request, _id):
         """为用户添加权限
         """
-        if request.app.name not in request.args['_roles']:
-            return json({"message":"you do not have permission to add role"},401)
+
+        try:
+            user = await User.get(User._id == _id)
+        except:
+            return json({"message":"找不到用户"},401)
         else:
             try:
-                user = await User.get(User._id == _id)
+                role = await Role.get(role.service_name == request.json["service_name"])
             except:
-                return json({"message":"can not find the user"},401)
+                return json({"message":"找不到想要添加的服务权限"},401)
             else:
                 try:
-                    role = await Role.get(role.service_name == request.json["rolename"])
+                    result = await user.roles.add(role)
                 except:
-                    return json({"message":"can not find the rolename"},401)
+                    return json({
+                        "result": False
+                    })
                 else:
-                    try:
-                        result = await user.roles.add(role)
-                    except:
-                        return json({
-                            "result": False
-                        })
-                    else:
-                        return json({
-                            "result": True
-                        })
+                    return json({
+                        "result": True
+                    })
 
     async def delete(self, request, _id):
         """为用户删除权限
         """
-        if request.app.name not in request.args['_roles']:
-            return json({"message":"you do not have permission to add role"},401)
+
+        try:
+            user = await User.get(User._id == _id)
+        except:
+            return json({"message":"找不到用户"},401)
 
         else:
             try:
-                user = await User.get(User._id == _id)
+                role = await Role.get(role.service_name == request.json["service_name"])
             except:
-                return json({"message":"can not find the user"},401)
-
+                return json({"message":"找不到想要删除的服务权限"},401)
             else:
                 try:
-                    role = await Role.get(role.service_name == request.json["rolename"])
+                    result = await user.roles.remove(role)
                 except:
-                    return json({"message":"can not find the rolename"},401)
+                    return json({
+                        "result": False
+                    })
                 else:
-                    try:
-                        result = await user.roles.remove(role)
-                    except:
-                        return json({
-                            "result": False
-                        })
-                    else:
-                        return json({
-                            "result": result
-                        })
-        return json('I am delete method')
+                    return json({
+                        "result": True
+                    })

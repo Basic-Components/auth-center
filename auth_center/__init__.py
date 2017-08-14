@@ -12,7 +12,8 @@ from auth_center.api import api
 
 app = Sanic("auth-center")
 CORS(app,automatic_options=True)
-AioOrm.SetConfig(app, defaultdb="mysql://root:rstrst@localhost:3306/test_auth")
+#AioOrm.SetConfig(app, defaultdb="mysql://root:rstrst@localhost:3306/test_auth")
+AioOrm.SetConfig(app, defaultdb="mysql://root:hsz881224@127.0.0.1:3306/test_auth")
 orm = AioOrm(app)
 orm.init_proxys(defaultdb=db)
 orm.create_tables(User=[{"_id":uuid.uuid4(),
@@ -23,7 +24,7 @@ orm.create_tables(User=[{"_id":uuid.uuid4(),
                   Role=[{"service_name":app.name},
                         {"service_name":"msg_reverse_indexing"}])
 
-Redis.SetConfig(app, captcha="redis://localhost:6379/1")
+Redis.SetConfig(app, captcha="redis://localhost:6379/1",auth_token="redis://localhost:6379/2")
 Redis(app)
 
 app.config['SECRET_KEY'] = 'secret-key'

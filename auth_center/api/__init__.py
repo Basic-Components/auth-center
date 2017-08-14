@@ -16,8 +16,8 @@ from .role_source import RoleListSource
 #UserEmailSource.decorators.append(cross_origin(api))
 #RoleListSource.decorators.append(cross_origin(api))
 
-api.add_route(UserRoleSource.as_view(), '/user_role/<_id>')
-api.add_route(UserPasswordSource.as_view(), '/user_password/<_id>')
-api.add_route(UserEmailSource.as_view(), '/user_email/<_id>')
-api.add_route(UserListSource.as_view(), '/users')
-api.add_route(RoleListSource.as_view(), '/roles')
+api.add_route(UserRoleSource.as_view(), '/user/role/<_id>')
+api.add_route(UserPasswordSource.as_view(), '/user/password/<_id>')
+api.add_route(UserEmailSource.as_view(), '/user/email/<_id>')
+api.add_route(UserListSource.as_view(), '/user')
+api.add_route(RoleListSource.as_view(), '/role')

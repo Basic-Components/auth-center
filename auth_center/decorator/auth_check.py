@@ -1,6 +1,6 @@
 from functools import wraps
 from sanic.response import json
-from sanic.exceptions import NotFound,Unauthorized
+from sanic_redis import Namespace
 from auth_center.model import User,Role
 
 def authorized():
@@ -8,23 +8,32 @@ def authorized():
         @wraps(func)
         async def handler(request, *args, **kwargs):
             # Middleware goes here
+            namespace = Namespace(request.app.name+"-auth_token")
             try:
                 token = request.headers["Authorization"]
             except KeyError as ke:
-                return json({"message":"do not have the auth token"},401)
+                return json({"message":"没有验证token"},401)
+
+            token_info = request.app.serializer.loads(token)
             try:
-                token_info = request.app.serializer.loads(token,request.app.config['TOKEN_TIME'])
-            except SignatureExpired as e:
-                return json({"message":"token is out of date"},401)
+                nowuser = await User.get(User._id==token_info["_id"])
+            except Exception as e:
+                return json({"message":"token指向的用户不存在"},401)
             else:
-                _id = token_info["_id"]
                 try:
-                    nowuser = await User.get(User._id==_id)
+                    value = await request.app.redis["auth_token"].get(namespace(token_info["_id"]))
                 except Exception as e:
-                    return json({"message":"user in token not exist"},401)
+                    print("_________")
+                    print(e.message)
+                    return json({"message":"token已过期"},401)
                 else:
-                    request.args['_id'] = token_info["_id"]
-                    request.args['_roles'] = token_info["roles"]
-                    return await func(request, *args, **kwargs)
+                    if value != token.encode("utf-8"):
+                        print(value)
+                        print(token)
+                        return json({"message":"token过期已更改"},401)
+                    else:
+                        request.args['auth_id'] = token_info["_id"]
+                        request.args['auth_roles'] = token_info["roles"]
+                        return await func(request, *args, **kwargs)
         return handler
     return decorator

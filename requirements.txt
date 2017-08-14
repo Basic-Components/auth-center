@@ -2,5 +2,9 @@ sanic
 sanic_session
 sanic-aioorm
 sanic-aredis
+sanic_cors
 aiohttp
 pillow
+itsdangerous
+aredis
+bcrypt

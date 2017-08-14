@@ -7,25 +7,31 @@ import base64
 import math
 from io import BytesIO
 from PIL import Image,ImageDraw,ImageFont,ImageFilter
-from sanic_cors import cross_origin
 from sanic import Blueprint
 from sanic.response import json,html
+from sanic_redis import Namespace
+from sanic_cors import cross_origin
 from auth_center.model import User, Role
 from auth_center.decorator.auth_check import authorized
 
 auth = Blueprint('auth')
 
-
 @auth.post("/")
 async def auth_index(request):
+    namespace = Namespace(request.app.name+"-auth_token")
     json_data = request.json
     username = json_data.get("username")
     password = json_data.get("password")
+    remember = json_data.get("remember")
     try:
         user = await User.get(User.username == username)
     except Exception as e:
-        return josn({"message":"UserDoesNotExist"},401)
+        return json({"message":"用户不存在"},401)
     else:
+        re = await request.app.redis["auth_token"].get(namespace(str(user._id)))
+        print(re)
+        if re:
+            return json({"message":"用户已经有激活的token"},401)
         flag = user.password.check_password(password)
         if flag:
             roles = [i.service_name for i in  await user.roles]
@@ -34,9 +40,15 @@ async def auth_index(request):
                 "roles":roles
             }
             token = request.app.serializer.dumps(token_dic)
+            await request.app.redis["auth_token"].set(namespace(str(user._id)),token)
+            if remember:
+                await request.app.redis["auth_token"].expire(namespace(str(user._id)),604800)
+            else:
+                await request.app.redis["auth_token"].expire(namespace(str(user._id)),86400)
+
             return json({"message":token})
         else:
-            return josn({"message":"password not match"},401)
+            return json({"message":"密码不正确"},401)
 
 
 def gene_text(number=6):
@@ -85,10 +97,11 @@ def gene_code(number=6):
 
 @auth.post("/captcha")
 async def auth_captcha(request):
+    namespace = Namespace(request.app.name+"-captcha")
     id_ = uuid.uuid4()
     img,text = gene_code()
-    await request.app.redis["captcha"].set(id_,text)
-    await request.app.redis["captcha"].expire(id_,600)
+    await request.app.redis["captcha"].set(namespace(str(id_)),text)
+    await request.app.redis["captcha"].expire(namespace(str(id_)),600)
     with BytesIO() as f:
         img.save(f,'png')
         b = base64.b64encode(f.getvalue())
