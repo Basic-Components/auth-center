@@ -17,14 +17,16 @@ class UserListSource(HTTPMethodView):
         """直接查看User中的全部内容,可以添加参数name查看username为name的用户是否存在
         """
         if (request.app.name not in request.args['_roles']):
-            raise SourceNotFound("you do not have permission to see other's infomation")
+            return json({"message":"you do not have permission to see other's infomation"},401)
+
         else:
             name = request.args.get("name")
             if name:
                 try:
                     user = await User.get(User.username == name)
                 except:
-                    raise SourceNotFound("can not find the user")
+                    return json({"message":"can not find the user"},401)
+
                 else:
                     users = [user]
             else:
@@ -40,7 +42,8 @@ class UserListSource(HTTPMethodView):
         """为User表添加新的成员,使用inser_many,传入的必须为一个名为users的列表,每个元素包含username和password和main_email
         """
         if (request.app.name not in request.args['_roles']):
-            raise SourceNotFound("you do not have permission to see other's infomation")
+            return json({"message":"you do not have permission to see other's infomation"},401)
+
         else:
             iq = User.insert_many([{"_id": uuid.uuid4(),
                                     "username": i["username"],
@@ -50,7 +53,8 @@ class UserListSource(HTTPMethodView):
             try:
                 result = await iq.execute()
             except Exception as e:
-                raise DatabaseError(e.message)
+                return json({"message":e.message},500)
+
             else:
                 if result:
                     return json({
@@ -65,14 +69,15 @@ class UserListSource(HTTPMethodView):
         """在User表中删除username为name的用户
         """
         if (request.app.name not in request.args['_roles']):
-            raise SourceNotFound("you do not have permission to see other's infomation")
+            return json({"message":"you do not have permission to delete other's infomation"},401)
         else:
             name = request.json["name"]
             dq = User.delete().where(User.username == name)
             try:
                 nr = await dq
             except Exception as e:
-                raise DatabaseError(e.message)
+                return json({"message":e.message},500)
+
             else:
                 if result:
                     return json({

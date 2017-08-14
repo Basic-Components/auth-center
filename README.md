@@ -46,4 +46,10 @@ restful的认证中心服务,用于维护一个用户的登录注册中心,同�
     + password
 
     output:
-    + message
+    + message,token
+
++ `POST /captcha`
+
+    output:
+    + message,(captcha,pic_base64)
+    

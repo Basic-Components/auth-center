@@ -23,8 +23,8 @@ def authorized():
                 except Exception as e:
                     return json({"message":"user in token not exist"},401)
                 else:
-                    request.args['_id'] = token_info["_id"]
-                    request.args['_roles'] = token_info["roles"]
+                    request.args['auth_id'] = token_info["_id"]
+                    request.args['auth_roles'] = token_info["roles"]
                     return await func(request, *args, **kwargs)
         return handler
     return decorator

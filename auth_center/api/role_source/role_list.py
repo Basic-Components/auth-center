@@ -41,7 +41,7 @@ class RoleListSource(HTTPMethodView):
             try:
                 result = await iq.execute()
             except Exception as e:
-                return json({"message":"数据库错误","error":e.message},500))
+                return json({"message":"数据库错误","error":e.message},500)
             else:
                 if result:
                     return json({
@@ -63,7 +63,7 @@ class RoleListSource(HTTPMethodView):
             try:
                 nr = await dq
             except Exception as e:
-                return json({"message":"数据库错误","error":e.message},500))
+                return json({"message":"数据库错误","error":e.message},500)
             else:
                 if result:
                     return json({
