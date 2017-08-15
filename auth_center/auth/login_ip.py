@@ -5,9 +5,6 @@ from auth_center.model import IP
 
 async def ip_save(request,user):
     ip = request.ip[0]
-    print("ip")
-    print(ip)
-    print("-------")
     async with aiohttp.ClientSession() as session:
         async with session.get(request.app.config["GEO_URL"],
             params={"ip":ip}) as resp:
