@@ -1,7 +1,6 @@
 from pathlib import Path
 
-path=Path(__file__).absolute().parent.parent.joinpath("font/Arial.ttf")
-
+font_path = Path(__file__).absolute().parent.parent.joinpath("font/Arial.ttf")
 class DefaultSetting:
     # 服务器相关
     KEEP_ALIVE = False
@@ -17,5 +16,7 @@ class DefaultSetting:
     TOKEN_LIFECYCLE = 86400
     TOKEN_REMEMBER_LIFECYCLE = 604800
     # 验证码相关
-    CAPTCHA_FONT = str(path)
+    CAPTCHA_FONT = str(font_path)
     CAPTCHA_LIFECYCLE = 600
+    # ip解析相关
+    GEO_URL = "http://ip.taobao.com/service/getIpInfo.php"

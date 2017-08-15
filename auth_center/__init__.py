@@ -1,4 +1,5 @@
 import uuid
+import datetime
 from sanic import Sanic
 from sanic import response
 from sanic.response import json
@@ -9,7 +10,7 @@ from itsdangerous import URLSafeTimedSerializer
 from auth_center.model import db, User, Role
 from auth_center.auth import auth
 from auth_center.api import api
-
+from auth_center.captcha import captcha
 
 def create_app(env):
     app = Sanic("auth-center")
@@ -21,13 +22,16 @@ def create_app(env):
     orm.create_tables(User=[{"_id": uuid.uuid4(),
                              "username": "admin",
                              "password": 'admin',
-                             "main_email": "huangsizhe@rongshutong.com"}
+                             "main_email": "huangsizhe@rongshutong.com",
+                             "ctime":datetime.datetime.now()
+                             }
                             ],
                       Role=[{"service_name": app.name},
                             {"service_name": "msg_reverse_indexing"}])
     app.serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt=app.config['SALT'])
     app.blueprint(api, url_prefix='/api')
     app.blueprint(auth, url_prefix='/auth')
+    app.blueprint(captcha, url_prefix='/captcha')
 
     @app.listener('after_server_start')
     async def creat_relationship(app, loop):

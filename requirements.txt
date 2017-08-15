@@ -8,3 +8,6 @@ pillow
 itsdangerous
 aredis
 bcrypt
+pyyaml
+ua-parser
+user-agents

@@ -3,15 +3,14 @@
 import uuid
 import asyncio
 import aiohttp
-import base64
-from io import BytesIO
+import datetime
 from sanic import Blueprint
 from sanic.response import json, html
 from sanic_redis import Namespace
 from sanic_cors import cross_origin
 from auth_center.model import User, Role
-from auth_center.decorator import captcha_check
-from .captcha_gen import gene_code
+from auth_center.decorator import captcha_check, authorized
+from .login_ip import ip_save
 auth = Blueprint('auth')
 
 
@@ -28,9 +27,10 @@ async def auth_index(request):
         return json({"message": "用户不存在"}, 401)
     else:
         re = await request.app.redis["auth_token"].get(namespace(str(user._id)))
-        print(re)
+
         if re:
-            return json({"message": "用户已经有激活的token"}, 401)
+            await ip_save(request,user)
+            return json({"message": re.decode("utf-8"),"warn":"用户已经有激活的token"})
         flag = user.password.check_password(password)
         if flag:
             roles = [i.service_name for i in await user.roles]
@@ -42,35 +42,29 @@ async def auth_index(request):
             await request.app.redis["auth_token"].set(namespace(str(user._id)), token)
             if remember:
                 await request.app.redis["auth_token"].expire(namespace(str(user._id)),
-                                                             request.app.config["TOKEN_REMEMBER_LIFECYCLE"])
+                                                request.app.config["TOKEN_REMEMBER_LIFECYCLE"])
             else:
                 await request.app.redis["auth_token"].expire(namespace(str(user._id)),
-                                                             request.app.config["TOKEN_LIFECYCLE"])
-
+                                                request.app.config["TOKEN_LIFECYCLE"])
+            await ip_save(request,user)
             return json({"message": token})
         else:
             return json({"message": "密码不正确"}, 401)
 
-
-@auth.post("/captcha")
-async def auth_captcha(request):
+@auth.post("/logout")
+@authorized()
+async def auth_logout(request):
+    """注销,需要headers上有Authorization
+    """
+    namespace = Namespace(request.app.name + "-auth_token")
     try:
-        _type = request.json["type"]
-    except:
-        return json({"message":"请求需要有`type`字段"},400)
-    if _type not in ("signup","password","email","role"):
-        return json({"message":'请求`type`字段只能在"signup","password","email","role"之中'},400)
-    namespace = Namespace(request.app.name + "-captcha"+"-"+_type)
-    id_ = uuid.uuid4()
-    loop = asyncio.get_event_loop()
-    img, text = await loop.run_in_executor(None,gene_code,request.app)
-    await request.app.redis["captcha"].set(namespace(str(id_)), text)
-    # 设置验证的存活时间
-    await request.app.redis["captcha"].expire(namespace(str(id_)), request.app.config["CAPTCHA_LIFECYCLE"])
-    with BytesIO() as f:
-        img.save(f, 'png')
-        b = base64.b64encode(f.getvalue())
-    return json({"message": {'captcha_id': str(id_), 'content': b}})
+        re = await request.app.redis["auth_token"].delete(
+                        namespace(request.args['auth_id']))
+    except Exception as e:
+        return json({"message": "redis操作错误", "error": str(e)}, 500)
+    else:
+        return json({"message":"ok"})
+
 
 
 @auth.post("/signup")
@@ -84,14 +78,7 @@ async def auth_signup(request):
     username = json_data.get("username")
     password = json_data.get("password")
     main_email = json_data.get("main_email")
-    #captcha_id = json_data.get("captcha_id")
-    #captcha_code = json_data.get("captcha_code").encode("utf-8")
-    # code = await request.app.redis["captcha"].get(namespace(captcha_id))
-    # if code is None:
-    #     return json({"message": "找不到验证码信息,可能已过期"}, 401)
-    # else:
-    #     if code != captcha_code:
-    #         return json({"message": "验证码错误"}, 401)
+
     try:
         user_count = await User.select().where(User.username == username).count()
     except Exception as e:
@@ -110,7 +97,8 @@ async def auth_signup(request):
     iq = User.insert_many([{"_id": uuid.uuid4(),
                             "username": username,
                             'password': username,
-                            "main_email": main_email
+                            "main_email": main_email,
+                            "ctime":datetime.datetime.now()
                             }])
     try:
         result = await iq.execute()
