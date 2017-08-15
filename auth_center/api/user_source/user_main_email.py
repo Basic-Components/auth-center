@@ -2,15 +2,30 @@ from sanic.views import HTTPMethodView
 from sanic.response import json
 from sanic.exceptions import abort
 from auth_center.model import User, Role
-from auth_center.decorator.auth_check import authorized
+from auth_center.decorator import authorized, role_or_self_check,captcha_check
 
 class UserEmailSource(HTTPMethodView):
     """操作单个用户中的email
     """
-    decorators = [authorized()]
+    decorators = [captcha_check("email"),role_or_self_check(),authorized()]
+
+    async def get(self, request, _id):
+        """查看用户修改email
+        """
+
+        try:
+            user = await User.get(User._id == _id)
+        except:
+            return json({"message":"找不到对应用户"},401)
+
+        else:
+            return json({
+                "username": user.username,
+                "main_email": user.main_email
+            })
 
     async def post(self, request, _id):
-        """为用户修改email,需要传入一个{"token":xxx}
+        """为用户修改email,需要传入一个验证码信息
         """
 
         token = request.json["token"]

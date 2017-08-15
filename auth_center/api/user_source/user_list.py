@@ -1,7 +1,8 @@
 """
 操作User这张表,可以查看,添加或者删除一条记录,修改需要对应的其他resource
 """
-
+import uuid
+import peewee
 from sanic.views import HTTPMethodView
 from sanic.response import json
 from auth_center.model import User, Role
@@ -21,7 +22,7 @@ class UserListSource(HTTPMethodView):
             try:
                 user = await User.get(User.username == name)
             except:
-                return json({"message":"找不到用户"},401)
+                return json({"message":"找不到用户"},400)
 
             else:
                 users = [user]
@@ -31,28 +32,56 @@ class UserListSource(HTTPMethodView):
             {"_id": str(user._id),
              "username": user.username,
              "main_email":user.main_email,
-             "roles": [i.rolename for i in await user.roles]} for user in users]
+             "roles": [i.service_name for i in await user.roles]} for user in users]
         })
 
-    async def delete(self, request):
-        """在User表中删除username为name的用户
+    async def post(self, request):
+        """为User表批量添加新的成员,使用inser_many,传入的必须为一个名为users的列表,每个元素包含username和password和main_email
         """
-        if (request.app.name not in request.args['auth_roles']):
-            return json({"message":"you do not have permission to delete other's infomation"},401)
+        try:
+            request.json["users"]
+        except:
+            return json({"message":"需要传入一个名为users的列表,每个元素包含username和password和main_email"},500)
+        iq = User.insert_many([{"_id": uuid.uuid4(),
+                                "username": i["username"],
+                                'password':i['password'],
+                                "main_email":i['main_email']
+                                } for i in request.json["users"]])
+        try:
+            result = await iq.execute()
+        except peewee.IntegrityError as pe:
+            return json({"message":"用户数据已存在"},400)
+        except Exception as e:
+            return json({"message":"数据库错误","error":str(e)},500)
         else:
-            name = request.json["name"]
-            dq = User.delete().where(User.username == name)
-            try:
-                nr = await dq
-            except Exception as e:
-                return json({"message":e.message},500)
-
+            if result:
+                return json({
+                    "result": True
+                })
             else:
-                if result:
-                    return json({
-                        "result": True
-                    })
-                else:
-                    return json({
-                        "result": False
-                    })
+                return json({
+                    "result": False
+                })
+
+    async def delete(self, request):
+        """在User表中删除_id在users的用户,users传入的是一串_id列表
+        """
+        try:
+            _ids = request.json["users"]
+        except:
+            return json({"message":"需要传入一个名为users的列表,每个元素为user的_id"},400)
+        dq = User.delete().where(User._id << _ids)
+        try:
+            result = await dq.execute()
+            print(result)
+        except Exception as e:
+            return json({"message":"数据库错误","error":str(e)},500)
+        else:
+            if result:
+                return json({
+                    "result": True
+                })
+            else:
+                return json({
+                    "result": False
+                })

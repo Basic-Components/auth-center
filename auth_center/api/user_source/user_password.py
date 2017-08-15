@@ -2,13 +2,13 @@ from sanic.views import HTTPMethodView
 from sanic.response import json
 from sanic.exceptions import abort
 from auth_center.model import User, Role
-from auth_center.decorator.auth_check import authorized
+from auth_center.decorator import authorized,captcha_check
 
 
 class UserPasswordSource(HTTPMethodView):
     """操作单个用户中的密码
     """
-    decorators = [authorized()]
+    decorators = [captcha_check("password"),authorized()]
 
     async def post(self, request, _id):
         """为用户修改password,需要传入一个{"token":xxx}
