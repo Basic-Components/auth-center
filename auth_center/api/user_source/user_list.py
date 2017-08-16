@@ -2,6 +2,7 @@
 操作User这张表,可以查看,添加或者删除一条记录,修改需要对应的其他resource
 """
 import uuid
+import datetime
 import peewee
 from sanic.views import HTTPMethodView
 from sanic.response import json
@@ -45,7 +46,8 @@ class UserListSource(HTTPMethodView):
         iq = User.insert_many([{"_id": uuid.uuid4(),
                                 "username": i["username"],
                                 'password':i['password'],
-                                "main_email":i['main_email']
+                                "main_email":i['main_email'],
+                                "ctime":datetime.datetime.now()
                                 } for i in request.json["users"]])
         try:
             result = await iq.execute()

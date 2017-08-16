@@ -23,7 +23,7 @@ class User(BaseModel):
     username = CharField(max_length=80, unique = True)
     password = PasswordField()
     main_email = CharField(max_length=80, unique = True)
-    ctime = DateTimeField()
+    ctime = DateTimeField(formats='%Y-%m-%d %H:%M:%S')
     roles = ManyToManyField(Role, related_name='users')
 
     def __unicode__(self):
@@ -36,8 +36,8 @@ class IP(BaseModel):
     ip =  CharField()
     country = CharField()
     city = CharField()
-    ctime = DateTimeField()
-    utime = DateTimeField()
+    ctime = DateTimeField(formats='%Y-%m-%d %H:%M:%S')
+    utime = DateTimeField(formats='%Y-%m-%d %H:%M:%S')
     count = IntegerField(default = 0)
     user = ForeignKeyField(User,related_name='ips')
 
@@ -51,7 +51,7 @@ class UserAgents(BaseModel):
     browser = CharField()
     os = CharField()
     device = CharField()
-    ctime = DateTimeField()
-    utime = DateTimeField()
+    ctime = DateTimeField(formats='%Y-%m-%d %H:%M:%S')
+    utime = DateTimeField(formats='%Y-%m-%d %H:%M:%S')
     count = IntegerField(default = 0)
     user = ForeignKeyField(User,related_name='agents')

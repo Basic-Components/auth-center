@@ -1,6 +1,10 @@
 # auth-center
 restful的认证中心服务,用于维护一个用户的登录注册中心,同时维护其可用服务的列表,使用peewee和sanic
 
+# 版本
+
+v 0.0.1-alpha
+
 # 数据库设计
 
 用户只维护
@@ -129,3 +133,5 @@ user-agents维护,header中的`user-agents`
 
     output:
     + message,(captcha_id,pic_base64)
+
+## 登录
