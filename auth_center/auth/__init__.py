@@ -11,6 +11,7 @@ from sanic_cors import cross_origin
 from auth_center.model import User, Role
 from auth_center.decorator import captcha_check, authorized
 from .login_ip import ip_save
+from .login_agents import agent_save
 auth = Blueprint('auth')
 
 
@@ -29,8 +30,9 @@ async def auth_index(request):
         re = await request.app.redis["auth_token"].get(namespace(str(user._id)))
 
         if re:
-            await ip_save(request,user)
-            return json({"message": re.decode("utf-8"),"warn":"用户已经有激活的token"})
+            await ip_save(request, user)
+            await agent_save(request, user)
+            return json({"message": re.decode("utf-8"), "warn": "用户已经有激活的token"})
         flag = user.password.check_password(password)
         if flag:
             roles = [i.service_name for i in await user.roles]
@@ -42,14 +44,15 @@ async def auth_index(request):
             await request.app.redis["auth_token"].set(namespace(str(user._id)), token)
             if remember:
                 await request.app.redis["auth_token"].expire(namespace(str(user._id)),
-                                                request.app.config["TOKEN_REMEMBER_LIFECYCLE"])
+                                                             request.app.config["TOKEN_REMEMBER_LIFECYCLE"])
             else:
                 await request.app.redis["auth_token"].expire(namespace(str(user._id)),
-                                                request.app.config["TOKEN_LIFECYCLE"])
-            await ip_save(request,user)
+                                                             request.app.config["TOKEN_LIFECYCLE"])
+            await ip_save(request, user)
             return json({"message": token})
         else:
             return json({"message": "密码不正确"}, 401)
+
 
 @auth.post("/logout")
 @authorized()
@@ -59,12 +62,11 @@ async def auth_logout(request):
     namespace = Namespace(request.app.name + "-auth_token")
     try:
         re = await request.app.redis["auth_token"].delete(
-                        namespace(request.args['auth_id']))
+            namespace(request.args['auth_id']))
     except Exception as e:
         return json({"message": "redis操作错误", "error": str(e)}, 500)
     else:
-        return json({"message":"ok"})
-
+        return json({"message": "ok"})
 
 
 @auth.post("/signup")
@@ -98,7 +100,7 @@ async def auth_signup(request):
                             "username": username,
                             'password': username,
                             "main_email": main_email,
-                            "ctime":datetime.datetime.now()
+                            "ctime": datetime.datetime.now()
                             }])
     try:
         result = await iq.execute()
@@ -121,7 +123,7 @@ async def auth_signup_ajax_username(request):
     try:
         username = request.json["username"]
     except:
-        return json({"message":"需要有`username字段`"},500)
+        return json({"message": "需要有`username字段`"}, 500)
     try:
         user_count = await User.select().where(User.username == username).count()
     except Exception as e:
@@ -137,7 +139,7 @@ async def auth_signup_ajax_username(request):
     try:
         main_email = request.json["main_email"]
     except:
-        return json({"message":"需要有`main_email`字段"},500)
+        return json({"message": "需要有`main_email`字段"}, 500)
     try:
         user_count = await User.select().where(User.main_email == main_email).count()
     except Exception as e:
