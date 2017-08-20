@@ -39,6 +39,7 @@ async def auth_index(request):
             token_dic = {
                 "_id": str(user._id),
                 "roles": roles
+                "lifetime": request.app.config["TOKEN_REMEMBER_LIFECYCLE"] if remember else request.app.config["TOKEN_LIFECYCLE"]
             }
             token = request.app.serializer.dumps(token_dic)
             await request.app.redis["auth_token"].set(namespace(str(user._id)), token)

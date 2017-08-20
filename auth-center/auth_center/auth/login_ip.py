@@ -3,7 +3,7 @@ import datetime
 from auth_center.model import IP
 
 
-async def ip_save(request, user)):
+async def ip_save(request, user):
     ip=request.ip[0]
     now=datetime.datetime.now()
     ips=[await i for i in user.ips]
