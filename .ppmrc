@@ -1,0 +1,19 @@
+[project]
+project_name = auth-center
+license = MIT
+keywords = ['sanic']
+version = 0.0.1
+description = simple tools
+url = https://github.com/Basic-Components/auth-center
+
+[author]
+author = hsz
+author_email = hsz1273327@gmail.com
+
+[form]
+form = web
+
+[env]
+env = venv
+compiler = python
+

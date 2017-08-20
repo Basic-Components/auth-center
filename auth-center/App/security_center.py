@@ -11,8 +11,8 @@ from sanic.response import json,html
 
 from sanic_cors import CORS
 
-from auth_center.model import User, Role
-from auth_center.decorator.auth_check import authorized
+from App.model import User, Role
+from App.decorator.auth_check import authorized
 
 security_center = Blueprint('security_center')
 

@@ -1,6 +1,6 @@
 from functools import wraps
 from sanic.response import json
-from auth_center.model import User
+from App.model import User
 def role_check():
     def decorator(func):
         @wraps(func)

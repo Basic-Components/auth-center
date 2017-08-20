@@ -1,10 +1,12 @@
 import sys
 import argparse
-from auth_center import create_app
+from App import create_app
 from conf import env_factory
 
 def run(args):
     env = env_factory(args.env)
+    print(args.env)
+    print(env.PORT)
     app=create_app(env)
     app.run(host=env.HOST, port=env.PORT)
 def main(argv=sys.argv[1:]):

@@ -7,10 +7,10 @@ from sanic_cors import CORS
 from sanic_redis import Redis
 from sanic_aioorm import AioOrm
 from itsdangerous import URLSafeTimedSerializer
-from auth_center.model import db, User, Role
-from auth_center.auth import auth
-from auth_center.api import api
-from auth_center.captcha import captcha
+from App.model import db, User, Role
+from App.auth import auth
+from App.api import api
+from App.captcha import captcha
 
 def create_app(env):
     app = Sanic("auth-center")

@@ -1,4 +1,4 @@
-from auth_center.model import UserAgents
+from App.model import UserAgents
 
 
 async def agent_save(request, user):

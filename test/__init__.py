@@ -1,6 +1,6 @@
 import unittest
 
-from auth_center import create_app
+from App import create_app
 
 
 class Test_auth(unittest.TestCase):

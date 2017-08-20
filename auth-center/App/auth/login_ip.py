@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from auth_center.model import IP
+from App.model import IP
 
 
 async def ip_save(request, user):

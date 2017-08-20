@@ -6,8 +6,8 @@ import datetime
 import peewee
 from sanic.views import HTTPMethodView
 from sanic.response import json
-from auth_center.model import User, Role
-from auth_center.decorator import authorized, role_check
+from App.model import User, Role
+from App.decorator import authorized, role_check
 
 
 class UserListSource(HTTPMethodView):

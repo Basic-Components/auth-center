@@ -8,8 +8,8 @@ from sanic import Blueprint
 from sanic.response import json, html
 from sanic_redis import Namespace
 from sanic_cors import cross_origin
-from auth_center.model import User, Role
-from auth_center.decorator import captcha_check, authorized
+from App.model import User, Role
+from App.decorator import captcha_check, authorized
 from .login_ip import ip_save
 from .login_agents import agent_save
 auth = Blueprint('auth')
@@ -38,7 +38,7 @@ async def auth_index(request):
             roles = [i.service_name for i in await user.roles]
             token_dic = {
                 "_id": str(user._id),
-                "roles": roles
+                "roles": roles,
                 "lifetime": request.app.config["TOKEN_REMEMBER_LIFECYCLE"] if remember else request.app.config["TOKEN_LIFECYCLE"]
             }
             token = request.app.serializer.dumps(token_dic)

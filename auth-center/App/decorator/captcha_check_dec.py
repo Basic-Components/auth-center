@@ -1,7 +1,7 @@
 from functools import wraps
 from sanic.response import json
 from sanic_redis import Namespace
-from auth_center.model import User
+from App.model import User
 
 def captcha_check(_type):
     def decorator(func):

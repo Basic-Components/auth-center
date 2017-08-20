@@ -1,8 +1,8 @@
 from sanic.views import HTTPMethodView
 from sanic.response import json
 from sanic.exceptions import abort
-from auth_center.model import User, Role
-from auth_center.decorator import authorized, role_or_self_check
+from App.model import User, Role
+from App.decorator import authorized, role_or_self_check
 
 class UserRoleSource(HTTPMethodView):
     """操作单个用户中的权限

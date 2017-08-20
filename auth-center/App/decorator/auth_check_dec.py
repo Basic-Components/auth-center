@@ -1,7 +1,7 @@
 from functools import wraps
 from sanic.response import json
 from sanic_redis import Namespace
-from auth_center.model import User,Role
+from App.model import User,Role
 
 def authorized():
     def decorator(func):
