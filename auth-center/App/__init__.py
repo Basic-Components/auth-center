@@ -1,16 +1,17 @@
 import uuid
 import datetime
 from sanic import Sanic
-from sanic import response
-from sanic.response import json
 from sanic_cors import CORS
 from sanic_redis import Redis
 from sanic_aioorm import AioOrm
 from itsdangerous import URLSafeTimedSerializer
+import zmq
+import zmq.asyncio
 from App.model import db, User, Role
 from App.auth import auth
 from App.api import api
 from App.captcha import captcha
+
 
 def create_app(env):
     app = Sanic("auth-center")
@@ -41,4 +42,14 @@ def create_app(env):
             roles = await Role.select()
             for role in roles:
                 await user.roles.add(role)
+
+    @app.listener('after_server_start')
+    async def creat_zmq_client(app, loop):
+        #zmq.asyncio.install()
+        context = zmq.asyncio.Context()
+        socket = context.socket(zmq.REQ)
+        print("Connecting to server...")
+        socket.connect(app.config["ZMQ_URLS"]['captcha-gene'])
+        app.ZMQ_Sockets = {}
+        app.ZMQ_Sockets["captcha-gene"] = socket
     return app

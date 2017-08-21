@@ -20,3 +20,6 @@ class DefaultSetting:
     CAPTCHA_LIFECYCLE = 600
     # ip解析相关
     GEO_URL = "http://ip.taobao.com/service/getIpInfo.php"
+    ZMQ_URLS = {
+        "captcha-gene":"tcp://127.0.0.1:5555"
+    }
