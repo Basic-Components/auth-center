@@ -1,6 +1,7 @@
 import uuid
 import datetime
 from sanic import Sanic
+from sanic.response import json
 from sanic_cors import CORS
 from sanic_redis import Redis
 from sanic_aioorm import AioOrm
@@ -52,4 +53,9 @@ def create_app(env):
         socket.connect(app.config["ZMQ_URLS"]['captcha-gene'])
         app.ZMQ_Sockets = {}
         app.ZMQ_Sockets["captcha-gene"] = socket
+
+
+    @app.get("/ping")
+    async def ping(request):
+        return json({"message":"pong"})
     return app
